@@ -19,11 +19,8 @@ import java.io.File;
 public class MountReceiver extends BroadcastReceiver{
 
     private String southPath = "/zvideo";
-    private String targetPath ="/materials";
+    private String targetPath ="/zvideo";
     String path = "";
-
-    String[] fileNames = {"龙卷风1.mp4","龙卷风2.mp4","龙卷风3.mp4",
-            "龙卷风4.mp4","龙卷风5.mp4","龙卷风6.mp4"};
 
     @Override
     public void onReceive(final Context context, Intent intent) {
@@ -49,6 +46,10 @@ public class MountReceiver extends BroadcastReceiver{
 
             final File targetFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() ,southPath);
             final File usbFile = new File(path,targetPath);
+
+            if(targetFile != null && targetFile.exists()){
+                targetFile.delete();
+            }
 
             if(targetFile == null || !targetFile.exists()){
                 targetFile.mkdirs();

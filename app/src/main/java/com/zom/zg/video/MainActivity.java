@@ -1,16 +1,28 @@
 package com.zom.zg.video;
 
 import android.graphics.Color;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.os.Environment;
 import android.os.Message;
+import android.os.PersistableBundle;
 import android.support.percent.PercentLayoutHelper;
 import android.support.percent.PercentRelativeLayout;
+import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import com.zom.zg.video.base.ActivityFragmentInject;
 import com.zom.zg.video.base.BaseActivity;
+import com.zom.zg.video.util.MediaFile;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 @ActivityFragmentInject(
         contentViewId = R.layout.activity_main,
@@ -19,7 +31,11 @@ import com.zom.zg.video.base.BaseActivity;
 )
 public class MainActivity extends BaseActivity {
 
-    private PercentRelativeLayout percentRelativeLayout;
+    private String MATERIAL_PATH = "/zvideo";
+    private VideoView videoView;
+    private ImageView imageView;
+    private int playIndex = 0;
+    private List<String> filePaths = new ArrayList<>();
 
     @Override
     protected void toHandleMessage(Message msg) {
@@ -27,48 +43,84 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    protected void findViewAfterViewCreate() {
+    public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        super.onCreate(savedInstanceState, persistentState);
+        Log.e("MainActivity","onCreate");
+    }
 
+    @Override
+    protected void findViewAfterViewCreate() {
+        videoView = (VideoView) findViewById(R.id.videoViw);
+        imageView = (ImageView) findViewById(R.id.imageView);
     }
 
     @Override
     protected void initDataAfterFindView() {
-        initView();
-    }
-
-    private void initView(){
-        percentRelativeLayout = (PercentRelativeLayout) findViewById(R.id.root);
-
-        ImageView view = new ImageView(this);
-        view.setBackgroundColor(Color.BLACK);
-        PercentRelativeLayout.LayoutParams params = new PercentRelativeLayout.LayoutParams(0,0);
-        PercentLayoutHelper.PercentLayoutInfo percentLayoutInfo = params.getPercentLayoutInfo();
-        percentLayoutInfo.widthPercent = 0.25f;
-        percentLayoutInfo.heightPercent = 0.25f;
-        percentLayoutInfo.topMarginPercent = 0f;
-        percentLayoutInfo.leftMarginPercent = 0f;
-        percentRelativeLayout.addView(view,params);
-
-        ImageView view2 = new ImageView(this);
-        view2.setBackgroundColor(Color.BLUE);
-        PercentRelativeLayout.LayoutParams params2 = new PercentRelativeLayout.LayoutParams(0,0);
-        PercentLayoutHelper.PercentLayoutInfo percentLayoutInfo2 = params2.getPercentLayoutInfo();
-        percentLayoutInfo2.widthPercent = 0.25f;
-        percentLayoutInfo2.heightPercent = 0.25f;
-        percentLayoutInfo2.topMarginPercent = 0.75f;
-        percentLayoutInfo2.leftMarginPercent = 0.75f;
-        percentRelativeLayout.addView(view2,params2);
-
-        ImageView view3 = new ImageView(this);
-        view3.setBackgroundColor(Color.RED);
-        PercentRelativeLayout.LayoutParams params3 = new PercentRelativeLayout.LayoutParams(0,0);
-        PercentLayoutHelper.PercentLayoutInfo percentLayoutInfo3 = params3.getPercentLayoutInfo();
-        percentLayoutInfo3.widthPercent = 0.25f;
-        percentLayoutInfo3.heightPercent = 0.25f;
-        percentLayoutInfo3.topMarginPercent = 0.375f;
-        percentLayoutInfo3.leftMarginPercent = 0.375f;
-        percentRelativeLayout.addView(view3,params3);
+        onComplete();
 
     }
 
+    /**
+     * 获取视频文件列表
+     */
+    private void getFileList(){
+        String localPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/zvideo";
+        File dirFile = new File(localPath);
+        if(dirFile.isDirectory()){
+            File[] files = dirFile.listFiles();
+            if(files != null && files.length > 0){
+                for (File file : files) {
+                    MediaFile.MediaFileType mediaFileType = MediaFile.getFileType(file.getAbsolutePath());
+                    if(MediaFile.isVideoFileType(mediaFileType.fileType)){
+                        filePaths.add(file.getAbsolutePath());
+                    }
+                }
+            }
+        }
+    }
+
+    private void onComplete(){
+        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                playIndex++;
+                if(playIndex > (filePaths.size() - 1)){
+                    playIndex = 0;
+                }
+                videoView.setVideoPath(filePaths.get(playIndex));
+                videoView.start();
+            }
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.e("MainActivity","onPause");
+        if(videoView.isPlaying()){
+            videoView.pause();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e("MainActivity","onResume");
+        getFileList();
+        if(filePaths.size() == 0){
+            imageView.setVisibility(View.VISIBLE);
+            return;
+        }
+        playIndex = 0;
+        imageView.setVisibility(View.GONE);
+        videoView.setVideoPath(filePaths.get(playIndex));
+        videoView.start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        videoView.stopPlayback();
+    }
 }
