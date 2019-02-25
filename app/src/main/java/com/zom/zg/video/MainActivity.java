@@ -65,7 +65,7 @@ public class MainActivity extends BaseActivity {
      * 获取视频文件列表
      */
     private void getFileList(){
-        String localPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/zvideo";
+        String localPath = Environment.getExternalStorageDirectory().getAbsolutePath() + MATERIAL_PATH;
         File dirFile = new File(localPath);
         if(dirFile.isDirectory()){
             File[] files = dirFile.listFiles();

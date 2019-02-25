@@ -10,6 +10,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.zom.zg.video.MainActivity;
 import com.zom.zg.video.R;
 import com.zom.zg.video.base.ActivityFragmentInject;
 import com.zom.zg.video.base.BaseActivity;
@@ -31,6 +32,9 @@ public class CopyActivity extends BaseActivity {
     @Override
     protected void toHandleMessage(Message msg) {
         finish();
+        Intent toStartCopy = new Intent(this,MainActivity.class);
+        toStartCopy.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(toStartCopy);
     }
 
     @Override

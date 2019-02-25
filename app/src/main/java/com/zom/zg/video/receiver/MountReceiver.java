@@ -48,7 +48,7 @@ public class MountReceiver extends BroadcastReceiver{
             final File usbFile = new File(path,targetPath);
 
             if(targetFile != null && targetFile.exists()){
-                targetFile.delete();
+                FileUtil.deleteDirWihtFile(targetFile);
             }
 
             if(targetFile == null || !targetFile.exists()){
@@ -57,7 +57,7 @@ public class MountReceiver extends BroadcastReceiver{
 
             if(usbFile != null && usbFile.exists() && usbFile.isDirectory()){
                 final File[] sourceFileNames = usbFile.listFiles();
-                if(sourceFileNames != null && sourceFileNames.length == 6){
+                if(sourceFileNames != null && sourceFileNames.length > 0){
                     Intent toStartCopy = new Intent(context,CopyActivity.class);
                     toStartCopy.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(toStartCopy);
